@@ -62,6 +62,11 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+    }
+
     @Transactional
     public InterestCompanyResponse addInterest(Long userId, InterestCompanyRequest request) {
         if (interestCompanyRepository.existsByUserIdAndCompanyCode(userId, request.getCompanyCode())) {

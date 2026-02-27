@@ -1,6 +1,5 @@
 package com.casablanca.controller;
 
-import com.casablanca.config.JwtUtil;
 import com.casablanca.dto.*;
 import com.casablanca.entity.User;
 import com.casablanca.service.UserService;
@@ -17,7 +16,6 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -31,7 +29,7 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<User> getUserProfile(@RequestHeader("X-User-Id") Long userId) {
-        User user = userService.getUserByUsername(jwtUtil.extractUsername(getTokenFromHeader()));
+        User user = userService.getUserById(userId);
         user.setPassword(null);
         return ResponseEntity.ok(user);
     }
@@ -55,10 +53,5 @@ public class UserController {
             @PathVariable Long id) {
         userService.deleteInterest(userId, id);
         return ResponseEntity.noContent().build();
-    }
-
-    private String getTokenFromHeader() {
-        // This will be set by the gateway filter
-        return "";
     }
 }
