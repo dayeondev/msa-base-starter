@@ -3,6 +3,7 @@ package com.casablanca.gateway.filter;
 import com.casablanca.gateway.util.JwtUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -23,6 +24,9 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
 
     private final JwtUtil jwtUtil;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Value("${app.gateway.secret}")
+    private String gatewaySecret;
 
     public static class Config {
         // Configuration properties if needed
@@ -59,6 +63,7 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                 ServerHttpRequest mutatedRequest = request.mutate()
                         .header("X-User-Id", String.valueOf(userId))
                         .header("X-Username", username)
+                        .header("X-Gateway-Secret", gatewaySecret)
                         .build();
 
                 return chain.filter(exchange.mutate().request(mutatedRequest).build());

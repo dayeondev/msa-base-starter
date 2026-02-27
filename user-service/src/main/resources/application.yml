@@ -24,6 +24,9 @@ app:
   jwt:
     secret: Y2FzYWJsYW5jYS1tc2EtcHJvamVjdC1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tZ2VuZXJhdGlvbg==
     expiration: 86400000  # 24 hours
+  gateway:
+    secret: casablanca-gateway-internal-secret-key-2026
+    trusted-ip: api-gateway
 
 management:
   endpoints:

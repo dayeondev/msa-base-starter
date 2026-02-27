@@ -48,8 +48,6 @@ services:
       context: ./user-service
       dockerfile: Dockerfile
     container_name: casablanca-user-service
-    ports:
-      - "8081:8081"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/userdb?useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: user
@@ -67,8 +65,6 @@ services:
       context: ./disclosure-service
       dockerfile: Dockerfile
     container_name: casablanca-disclosure-service
-    ports:
-      - "8082:8000"
     environment:
       DATABASE_URL: postgresql://disclosure:disclosure123@postgres:5432/disclosuredb
     depends_on:
