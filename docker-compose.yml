@@ -1,0 +1,117 @@
+version: '3.8'
+
+services:
+  # MySQL Database for User Service
+  mysql:
+    image: mysql:8.0
+    container_name: casablanca-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: userdb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user123
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - casablanca-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database for Disclosure Service
+  postgres:
+    image: postgres:15
+    container_name: casablanca-postgres
+    environment:
+      POSTGRES_DB: disclosuredb
+      POSTGRES_USER: disclosure
+      POSTGRES_PASSWORD: disclosure123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - casablanca-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U disclosure -d disclosuredb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # User Service
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: casablanca-user-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/userdb?useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: user123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - casablanca-network
+    restart: unless-stopped
+
+  # Disclosure Service
+  disclosure-service:
+    build:
+      context: ./disclosure-service
+      dockerfile: Dockerfile
+    container_name: casablanca-disclosure-service
+    environment:
+      DATABASE_URL: postgresql://disclosure:disclosure123@postgres:5432/disclosuredb
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - casablanca-network
+    restart: unless-stopped
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: casablanca-api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      USER_SERVICE_URL: http://user-service:8081
+      DISCLOSURE_SERVICE_URL: http://disclosure-service:8000
+    depends_on:
+      - user-service
+      - disclosure-service
+    networks:
+      - casablanca-network
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: casablanca-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://localhost:8080
+    depends_on:
+      - api-gateway
+    networks:
+      - casablanca-network
+    restart: unless-stopped
+
+networks:
+  casablanca-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  postgres_data:
