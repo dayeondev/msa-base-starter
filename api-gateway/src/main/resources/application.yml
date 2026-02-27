@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        # User Service Routes
+        - id: user-service-register
+          uri: http://user-service:8081
+          predicates:
+            - Path=/api/users/register, /api/users/login
+          filters:
+            - StripPrefix=0
+            - RequestIdFilter
+
+        - id: user-service
+          uri: http://user-service:8081
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=0
+            - RequestIdFilter
+            - JwtAuthenticationFilter
+
+        # Disclosure Service Routes
+        - id: disclosure-service
+          uri: http://disclosure-service:8000
+          predicates:
+            - Path=/api/companies/**, /api/disclosures/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /api/${segment}
+            - RequestIdFilter
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: Y2FzYWJsYW5jYS1tc2EtcHJvamVjdC1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tZ2VuZXJhdGlvbg==
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  metrics:
+    export:
+      prometheus:
+        enabled: true

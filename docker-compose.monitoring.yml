@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: casablanca-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - casablanca-network
+      - app-network
+    restart: unless-stopped
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: casablanca-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - casablanca-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Loki
+  loki:
+    image: grafana/loki:latest
+    container_name: casablanca-loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml
+      - loki_data:/loki
+    networks:
+      - casablanca-network
+    restart: unless-stopped
+
+  # Promtail (Log Agent)
+  promtail:
+    image: grafana/promtail:latest
+    container_name: casablanca-promtail
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - casablanca-network
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+networks:
+  casablanca-network:
+    name: casablanca-network
+    external: false
+  app-network:
+    name: casablanca_casablanca-network
+    external: true
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  loki_data:
