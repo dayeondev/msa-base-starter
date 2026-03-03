@@ -49,7 +49,7 @@ services:
       dockerfile: Dockerfile
     container_name: casablanca-user-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/userdb?useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: user123
     depends_on:
