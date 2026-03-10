@@ -43,7 +43,7 @@ public class RequestIdFilter extends AbstractGatewayFilterFactory<Object> {
 
             // Add Request ID to response header for client tracing
             final ServerHttpResponse response = exchange.getResponse();
-            response.getHeaders().add(REQUEST_ID_HEADER, finalRequestId);
+            response.getHeaders().set(REQUEST_ID_HEADER, finalRequestId);
 
             // Propagate Request ID to downstream services
             ServerHttpRequest mutatedRequest = request.mutate()

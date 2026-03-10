@@ -3,6 +3,8 @@ package com.casablanca.gateway.filter;
 import com.casablanca.gateway.util.JwtUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -22,6 +24,8 @@ import java.util.Map;
 @Component("JwtAuthentication")
 public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAuthenticationFilter.Config> {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
     private final JwtUtil jwtUtil;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -40,37 +44,36 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         super(Config.class);
         this.jwtUtil = jwtUtil;
-        System.out.println("JwtAuthenticationFilter initialized!");
+        log.debug("JwtAuthenticationFilter initialized");
     }
 
     @Override
     public GatewayFilter apply(Config config) {
-        System.out.println("JwtAuthenticationFilter.apply() called!");
         return (exchange, chain) -> {
-            System.out.println("JwtAuthenticationFilter filtering request: " + exchange.getRequest().getPath());
             ServerHttpRequest request = exchange.getRequest();
+            String path = request.getPath().value();
+            log.debug("JwtAuthenticationFilter filtering request: {}", path);
 
             // Extract Authorization header
             String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                System.out.println("JwtAuthenticationFilter: Missing Authorization header");
+                log.debug("JwtAuthenticationFilter: Missing Authorization header for {}", path);
                 return onError(exchange.getResponse(), "Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
             }
 
             String token = authHeader.substring(7);
-            System.out.println("JwtAuthenticationFilter: Token found: " + token.substring(0, Math.min(20, token.length())) + "...");
 
             try {
                 if (!jwtUtil.validateToken(token)) {
-                    System.out.println("JwtAuthenticationFilter: Invalid token");
+                    log.debug("JwtAuthenticationFilter: Invalid token for {}", path);
                     return onError(exchange.getResponse(), "Invalid or expired token", HttpStatus.UNAUTHORIZED);
                 }
 
                 // Add user info to headers for downstream services
                 String username = jwtUtil.extractUsername(token);
                 Long userId = jwtUtil.extractUserId(token);
-                System.out.println("JwtAuthenticationFilter: User authenticated - " + username + " (ID: " + userId + ")");
+                log.debug("JwtAuthenticationFilter: User authenticated for {}", path);
 
                 ServerHttpRequest mutatedRequest = request.mutate()
                         .header("X-User-Id", String.valueOf(userId))
@@ -81,8 +84,8 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                 return chain.filter(exchange.mutate().request(mutatedRequest).build());
 
             } catch (Exception e) {
-                System.out.println("JwtAuthenticationFilter: Exception - " + e.getMessage());
-                return onError(exchange.getResponse(), "Token validation failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+                log.debug("JwtAuthenticationFilter: Exception during token validation for {}: {}", path, e.getMessage());
+                return onError(exchange.getResponse(), "Token validation failed", HttpStatus.UNAUTHORIZED);
             }
         };
     }

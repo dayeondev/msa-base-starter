@@ -4,6 +4,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,11 +19,10 @@ import java.util.Collections;
 @Component
 public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(GatewayAuthenticationFilter.class);
+
     @Value("${app.gateway.secret}")
     private String gatewaySecret;
-
-    @Value("${app.gateway.trusted-ip}")
-    private String trustedGatewayIp;
 
     private static final String GATEWAY_SECRET_HEADER = "X-Gateway-Secret";
     private static final String USER_ID_HEADER = "X-User-Id";
@@ -40,12 +41,12 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
         if (userIdHeader != null && usernameHeader != null) {
             // Validate gateway secret - this is sufficient to verify the request comes from our gateway
             if (!gatewaySecret.equals(gatewaySecretHeader)) {
-                System.out.println("GatewayAuthenticationFilter: Invalid gateway secret from " + request.getRemoteAddr());
+                log.warn("GatewayAuthenticationFilter: Invalid gateway secret from {}", request.getRemoteAddr());
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid gateway secret");
                 return;
             }
 
-            System.out.println("GatewayAuthenticationFilter: Valid gateway secret, authenticating user " + usernameHeader);
+            log.debug("GatewayAuthenticationFilter: Valid gateway secret, authenticating user");
 
             // Parse and validate user ID
             Long userId;
@@ -70,13 +71,5 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
-    }
-
-    private boolean isTrustedSource(String remoteAddr) {
-        // Accept localhost or requests from the gateway
-        // In Docker Compose, requests from the gateway will have the gateway container's IP
-        return remoteAddr.equals("127.0.0.1")
-            || remoteAddr.equals("0:0:0:0:0:0:0:1")  // IPv6 localhost
-            || remoteAddr.contains(trustedGatewayIp);
     }
 }
