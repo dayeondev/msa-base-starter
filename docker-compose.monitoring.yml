@@ -15,7 +15,6 @@ services:
       - prometheus_data:/prometheus
     networks:
       - casablanca-network
-      - app-network
     restart: unless-stopped
 
   # Grafana
@@ -69,9 +68,6 @@ networks:
   casablanca-network:
     name: casablanca-network
     external: false
-  app-network:
-    name: casablanca_casablanca-network
-    external: true
 
 volumes:
   prometheus_data:
