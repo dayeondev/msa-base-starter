@@ -11,11 +11,16 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-@Component
+@Component("RequestId")
 public class RequestIdFilter extends AbstractGatewayFilterFactory<Object> {
 
     private static final Logger log = LoggerFactory.getLogger(RequestIdFilter.class);
     private static final String REQUEST_ID_HEADER = "X-Request-ID";
+
+    @Override
+    public String name() {
+        return "RequestId";
+    }
 
     @Override
     public GatewayFilter apply(Object config) {

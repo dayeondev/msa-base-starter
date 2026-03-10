@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
+@Component("JwtAuthentication")
 public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAuthenticationFilter.Config> {
 
     private final JwtUtil jwtUtil;
@@ -28,6 +28,11 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
     @Value("${app.gateway.secret}")
     private String gatewaySecret;
 
+    @Override
+    public String name() {
+        return "JwtAuthentication";
+    }
+
     public static class Config {
         // Configuration properties if needed
     }
@@ -35,30 +40,37 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         super(Config.class);
         this.jwtUtil = jwtUtil;
+        System.out.println("JwtAuthenticationFilter initialized!");
     }
 
     @Override
     public GatewayFilter apply(Config config) {
+        System.out.println("JwtAuthenticationFilter.apply() called!");
         return (exchange, chain) -> {
+            System.out.println("JwtAuthenticationFilter filtering request: " + exchange.getRequest().getPath());
             ServerHttpRequest request = exchange.getRequest();
 
             // Extract Authorization header
             String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                System.out.println("JwtAuthenticationFilter: Missing Authorization header");
                 return onError(exchange.getResponse(), "Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
             }
 
             String token = authHeader.substring(7);
+            System.out.println("JwtAuthenticationFilter: Token found: " + token.substring(0, Math.min(20, token.length())) + "...");
 
             try {
                 if (!jwtUtil.validateToken(token)) {
+                    System.out.println("JwtAuthenticationFilter: Invalid token");
                     return onError(exchange.getResponse(), "Invalid or expired token", HttpStatus.UNAUTHORIZED);
                 }
 
                 // Add user info to headers for downstream services
                 String username = jwtUtil.extractUsername(token);
                 Long userId = jwtUtil.extractUserId(token);
+                System.out.println("JwtAuthenticationFilter: User authenticated - " + username + " (ID: " + userId + ")");
 
                 ServerHttpRequest mutatedRequest = request.mutate()
                         .header("X-User-Id", String.valueOf(userId))
@@ -69,6 +81,7 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                 return chain.filter(exchange.mutate().request(mutatedRequest).build());
 
             } catch (Exception e) {
+                System.out.println("JwtAuthenticationFilter: Exception - " + e.getMessage());
                 return onError(exchange.getResponse(), "Token validation failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
             }
         };

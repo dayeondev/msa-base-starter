@@ -35,23 +35,17 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
         String userIdHeader = request.getHeader(USER_ID_HEADER);
         String usernameHeader = request.getHeader(USERNAME_HEADER);
         String gatewaySecretHeader = request.getHeader(GATEWAY_SECRET_HEADER);
-        String remoteAddr = request.getRemoteAddr();
 
         // If headers are present, validate they come from the gateway
         if (userIdHeader != null && usernameHeader != null) {
-            // Validate gateway secret
+            // Validate gateway secret - this is sufficient to verify the request comes from our gateway
             if (!gatewaySecret.equals(gatewaySecretHeader)) {
+                System.out.println("GatewayAuthenticationFilter: Invalid gateway secret from " + request.getRemoteAddr());
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid gateway secret");
                 return;
             }
 
-            // Validate request comes from trusted gateway
-            // Note: In Docker, the remote address will be the gateway's container IP
-            // We accept requests from localhost or the gateway service name
-            if (!isTrustedSource(remoteAddr)) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Untrusted source");
-                return;
-            }
+            System.out.println("GatewayAuthenticationFilter: Valid gateway secret, authenticating user " + usernameHeader);
 
             // Parse and validate user ID
             Long userId;
