@@ -2,6 +2,10 @@
 
 마이크로서비스 아키텍처(MSA) 개발 기반 구축 프로젝트입니다. 사용자는 로그인하여 기업을 검색하고 관심종목을 등록할 수 있으며, 등록된 기업의 최신 공시정보를 확인할 수 있습니다.
 
+## 🎥 Demo
+
+[![Demo Video](https://img.youtube.com/vi/JNNPZfzhFfw/0.jpg)](https://youtu.be/JNNPZfzhFfw?si=g_6NZKAwxj6GASsm)
+
 ## Architecture
 
 ```
