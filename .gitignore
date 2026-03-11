@@ -1,0 +1,60 @@
+# Logs
+*.log
+logs/
+
+# Docker
+.dockerignore
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+
+# User Service (Spring Boot)
+user-service/target/
+user-service/.mvn/
+user-service/mvnw
+user-service/*.class
+
+# Disclosure Service (Python)
+disclosure-service/__pycache__/
+disclosure-service/.venv/
+disclosure-service/venv/
+disclosure-service/*.pyc
+disclosure-service/.pytest_cache/
+
+# API Gateway
+api-gateway/target/
+api-gateway/.mvn/
+api-gateway/mvnw
+api-gateway/*.class
+
+# Database data
+mysql-data/
+postgres-data/
+*.db
+*.sqlite
+
+# Monitoring
+monitoring/grafana/data/
+monitoring/prometheus/data/
+monitoring/loki/index/
+monitoring/promtail/positions/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
