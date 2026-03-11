@@ -70,7 +70,12 @@ public class RequestIdFilter extends AbstractGatewayFilterFactory<Object> {
 
     private String getClientIp(ServerHttpRequest request) {
         String ip = request.getHeaders().getFirst("X-Forwarded-For");
-        if (ip == null || ip.isEmpty()) {
+        if (ip != null && !ip.isEmpty()) {
+            // X-Forwarded-For can contain multiple IPs: "client, proxy1, proxy2"
+            // Take the first IP (the original client IP)
+            String[] ips = ip.split(",");
+            ip = ips[0].trim();
+        } else {
             ip = request.getHeaders().getFirst("X-Real-IP");
         }
         if (ip == null || ip.isEmpty()) {
