@@ -1,7 +1,9 @@
 import api from './axios';
 
 export const companiesAPI = {
-  search: (query) => api.get(`/api/companies/search?q=${encodeURIComponent(query)}`),
+  search: (query) => api.get('/api/companies/search', {
+    params: { q: query }
+  }),
   getCompany: (id) => api.get(`/api/companies/${id}`),
 };
 
@@ -13,11 +15,14 @@ export const interestsAPI = {
 
 export const disclosuresAPI = {
   getByCompany: (companyId, limit = 10) =>
-    api.get(`/api/disclosures/company/${companyId}?limit=${limit}`),
-  getLatest: (companyIds, limit = 20) => {
-    const params = new URLSearchParams();
-    if (companyIds) params.append('company_ids', companyIds.join(','));
-    params.append('limit', limit.toString());
-    return api.get(`/api/disclosures/latest?${params.toString()}`);
-  },
+    api.get(`/api/disclosures/company/${companyId}`, {
+      params: { limit }
+    }),
+  getLatest: (companyIds, limit = 20) =>
+    api.get('/api/disclosures/latest', {
+      params: {
+        ...(companyIds && { company_ids: companyIds.join(',') }),
+        limit,
+      },
+    }),
 };
