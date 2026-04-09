@@ -41,7 +41,7 @@ services:
     networks:
       - casablanca-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U disclosure -d disclosuredb"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-disclosure} -d ${POSTGRES_DB:-disclosuredb}"]
       interval: 10s
       timeout: 5s
       retries: 5

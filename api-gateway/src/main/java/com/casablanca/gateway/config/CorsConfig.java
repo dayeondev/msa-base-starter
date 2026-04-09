@@ -8,6 +8,8 @@ import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 public class CorsConfig {
@@ -18,7 +20,11 @@ public class CorsConfig {
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .collect(Collectors.toList());
+        configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
