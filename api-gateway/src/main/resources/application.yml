@@ -36,9 +36,9 @@ server:
 
 app:
   jwt:
-    secret: ${APP_JWT_SECRET:change-me-jwt-secret-for-local-dev-only-2026-change-me-jwt-secret-for-local-dev-only-2026}
+    secret: ${APP_JWT_SECRET}
   gateway:
-    secret: ${APP_GATEWAY_SECRET:change-me-gateway-secret-for-local-dev-only-2026}
+    secret: ${APP_GATEWAY_SECRET}
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
 

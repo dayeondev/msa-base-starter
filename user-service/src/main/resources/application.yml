@@ -22,10 +22,10 @@ server:
 
 app:
   jwt:
-    secret: ${APP_JWT_SECRET:change-me-jwt-secret-for-local-dev-only-2026-change-me-jwt-secret-for-local-dev-only-2026}
+    secret: ${APP_JWT_SECRET}
     expiration: 86400000  # 24 hours
   gateway:
-    secret: ${APP_GATEWAY_SECRET:change-me-gateway-secret-for-local-dev-only-2026}
+    secret: ${APP_GATEWAY_SECRET}
     trusted-ip: ${APP_GATEWAY_TRUSTED_IP:api-gateway}
 
 management:
