@@ -49,6 +49,17 @@
 - Docker
 - Docker Compose
 
+### 0. Prepare service-level env files
+
+Each service owns its own `.env.example` file.
+
+```bash
+cp api-gateway/.env.example api-gateway/.env
+cp user-service/.env.example user-service/.env
+cp disclosure-service/.env.example disclosure-service/.env
+cp frontend/.env.example frontend/.env
+```
+
 ### 1. Start All Services
 
 ```bash
@@ -273,7 +284,7 @@ docker-compose restart mysql postgres
 
 ### Frontend API Connection
 
-1. Check `VITE_API_URL` in frontend Dockerfile
+1. Check `frontend/.env`
 2. Verify API Gateway is accessible: `curl http://localhost:8080/actuator/health`
 3. Check browser console for CORS errors
 
