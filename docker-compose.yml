@@ -5,11 +5,13 @@ services:
   mysql:
     image: mysql:8.0
     container_name: casablanca-mysql
+    env_file:
+      - ./user-service/.env
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: userdb
-      MYSQL_USER: user
-      MYSQL_PASSWORD: user123
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-userdb}
+      MYSQL_USER: ${MYSQL_USER:-user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-user123}
     ports:
       - "3307:3306"
     volumes:
@@ -26,10 +28,12 @@ services:
   postgres:
     image: postgres:15
     container_name: casablanca-postgres
+    env_file:
+      - ./disclosure-service/.env
     environment:
-      POSTGRES_DB: disclosuredb
-      POSTGRES_USER: disclosure
-      POSTGRES_PASSWORD: disclosure123
+      POSTGRES_DB: ${POSTGRES_DB:-disclosuredb}
+      POSTGRES_USER: ${POSTGRES_USER:-disclosure}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-disclosure123}
     ports:
       - "5433:5432"
     volumes:
@@ -37,7 +41,7 @@ services:
     networks:
       - casablanca-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U disclosure -d disclosuredb"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-disclosure} -d ${POSTGRES_DB:-disclosuredb}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,10 +52,12 @@ services:
       context: ./user-service
       dockerfile: Dockerfile
     container_name: casablanca-user-service
+    env_file:
+      - ./user-service/.env
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: user123
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:mysql://mysql:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-user}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-user123}
     depends_on:
       mysql:
         condition: service_healthy
@@ -65,8 +71,10 @@ services:
       context: ./disclosure-service
       dockerfile: Dockerfile
     container_name: casablanca-disclosure-service
+    env_file:
+      - ./disclosure-service/.env
     environment:
-      DATABASE_URL: postgresql://disclosure:disclosure123@postgres:5432/disclosuredb
+      DATABASE_URL: ${DATABASE_URL:-postgresql://disclosure:disclosure123@postgres:5432/disclosuredb}
     depends_on:
       postgres:
         condition: service_healthy
@@ -80,11 +88,13 @@ services:
       context: ./api-gateway
       dockerfile: Dockerfile
     container_name: casablanca-api-gateway
+    env_file:
+      - ./api-gateway/.env
     ports:
       - "8080:8080"
     environment:
-      USER_SERVICE_URL: http://user-service:8081
-      DISCLOSURE_SERVICE_URL: http://disclosure-service:8000
+      USER_SERVICE_URL: ${USER_SERVICE_URL:-http://user-service:8081}
+      DISCLOSURE_SERVICE_URL: ${DISCLOSURE_SERVICE_URL:-http://disclosure-service:8000}
     depends_on:
       - user-service
       - disclosure-service
@@ -98,10 +108,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: casablanca-frontend
+    env_file:
+      - ./frontend/.env
     ports:
       - "3000:3000"
     environment:
-      VITE_API_URL: http://localhost:8080
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
     depends_on:
       - api-gateway
     networks:

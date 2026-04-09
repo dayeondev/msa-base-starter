@@ -2,9 +2,9 @@ spring:
   application:
     name: user-service
   datasource:
-    url: jdbc:mysql://mysql:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: user
-    password: user123
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:user}
+    password: ${SPRING_DATASOURCE_PASSWORD:user123}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -22,11 +22,11 @@ server:
 
 app:
   jwt:
-    secret: Y2FzYWJsYW5jYS1tc2EtcHJvamVjdC1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tZ2VuZXJhdGlvbg==
+    secret: ${APP_JWT_SECRET}
     expiration: 86400000  # 24 hours
   gateway:
-    secret: casablanca-gateway-internal-secret-key-2026
-    trusted-ip: api-gateway
+    secret: ${APP_GATEWAY_SECRET}
+    trusted-ip: ${APP_GATEWAY_TRUSTED_IP:api-gateway}
 
 management:
   endpoints:
